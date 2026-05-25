@@ -4,12 +4,21 @@ export interface Monitor {
   alertEmail: string;
   status: "active" | "paused" | "down";
   lastHeartbeat: string;
-  timerHandle: ReturnType<typeof setTimeout> | null;
+  timerHandler: ReturnType<typeof setTimeout> | null;
+  alertHistory: AlertEvent[];
 }
 
-export type SafeMonitor = Omit<Monitor, "timerHandle">;
+export interface AlertEvent {
+  time: string;
+  message: string;
+  resolvedAt: string | null;
+  offlineDuration: string;
+}
 
-// Shape of the request body for POST /monitors
+export type SafeMonitor = Omit<Monitor, "timerHandler">;
+
+export type MonitorSummary = Omit<SafeMonitor, "alertHistory">;
+
 export interface CreateMonitorDto {
   id: string;
   timeout: number;

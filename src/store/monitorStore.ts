@@ -14,6 +14,7 @@ export function findAll(): Monitor[] {
   return Array.from(monitors.values());
 }
 
-export function exists(id: string): boolean {
-  return monitors.has(id);
+export function getHistoryById(id: string): Monitor["alertHistory"] | null {
+  const monitor = monitors.get(id);
+  return monitor ? monitor.alertHistory : null;
 }

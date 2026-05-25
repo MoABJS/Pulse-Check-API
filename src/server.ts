@@ -8,7 +8,7 @@ app.use(express.json());
 app.use("/", Routes);
 
 app.get("/", (req, res) => {
-  res.send(`<h1>You are a Dead Man, unless you ping!!!</h1>`);
+  res.json({ message: "You are a dead man, unless you ping!!!" });
 });
 
 app.listen(PORT, () => {
