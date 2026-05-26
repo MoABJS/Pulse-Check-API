@@ -9,7 +9,7 @@ export interface Monitor {
 }
 
 export interface AlertEvent {
-  time: string;
+  alertTime: string;
   message: string;
   resolvedAt: string | null;
   offlineDuration: string;

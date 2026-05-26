@@ -6,6 +6,3 @@ dist/
 
 # Environment variables — could contain secrets
 .env
-
-# Mac clutter
-.DS_Store

@@ -1,135 +1,412 @@
-# Pulse-Check-API ("Watchdog" Sentinel)
-This challenge is designed to test your ability to bridge Computer Science fundamentals with Modern Backend Engineering.
+# Pulse Check API — Dead Man's Switch Sentinel
 
-## 1. Business Context
-> **Client:** *CritMon Servers Inc.* (A Critical Infrastructure Monitoring Company).
-
-### The Problem
-CritMon provides monitoring for remote solar farms and unmanned weather stations in areas with poor connectivity. These devices are supposed to send "I'm alive" signals every hour.
-
-Currently, CritMon has no way of knowing if a device has gone offline (due to power failure or theft) until a human manually checks the logs. They need a system that alerts *them* when a device *stops* talking.
-
-### The Solution
-You need to build a **Dead Man’s Switch API**. Devices will register a "monitor" with a countdown timer (e.g., 60 seconds). If the device fails to "ping" (send a heartbeat) to the API before the timer runs out, the system automatically triggers an alert.
+A backend service that monitors remote devices by tracking periodic heartbeat signals. If a device goes silent, the system automatically fires an alert. Built with Node.js, Express, and TypeScript.
 
 ---
 
-## 2. Technical Objective
-Build a backend service that manages stateful timers.
+## Project Structure
 
-* **Registration:** Allow a client to create a monitor with a specific timeout duration.
-* **Heartbeat:** Reset the countdown when a ping is received.
-* **Trigger:** Fire a webhook (or log a critical error) if the countdown reaches zero.
+```
+pulse-check-api/
+├── src/
+│   ├── types/
+│   │   └── monitor.types.ts      # Interfaces, types, DTOs
+│   ├── store/
+│   │   └── monitorStore.ts       # In-memory data store
+│   ├── services/
+│   │   └── monitorService.ts     # Business logic & timer management
+│   ├── controllers/
+│   │   └── monitorController.ts  # HTTP request/response handling
+│   ├── routes/
+│   │   └── monitors.ts           # URL route definitions
+│   └── server.ts                 # Express app entry point
+├── docs/
+│   ├── architecture.svg
+│   └── flowchart.svg
+├── .gitignore
+├── package.json
+└── tsconfig.json
+```
 
+## Layered Architecture
 
----
+The codebase is split into four layers. Each layer has one responsibility and only communicates with the layer directly below it.
 
-## 3. Getting Started
-
-1.  **Fork this Repository:** Do not clone it directly. Create a fork to your own GitHub account.
-2.  **Environment:** You may use **Node.js, Python, Java or Go, etc.**.
-3.  **Submission:** Your final submission will be a link to your forked repository containing:
-    * The source code.
-    * The **Architecture Diagram**
-    * The `README.md` with documentation.
-
----
-
-## 4. The Architecture Diagram 
-**Task:** Before you write any code, you must design the logic flow.
-**Deliverable:** A **Sequence Diagram** or **State Flowchart** embedded in your `README.md`.
-
----
-
-## 5. User Stories & Acceptance Criteria
-
-### User Story 1: Registering a Monitor
-**As a** device administrator,  
-**I want to** create a new monitor for my device,  
-**So that** the system knows to track its status.
-
-**Acceptance Criteria:**
-- [ ] The API accepts a `POST /monitors` request.
-- [ ] Input: `{"id": "device-123", "timeout": 60, "alert_email": "admin@critmon.com"}`.
-- [ ] The system starts a countdown timer for 60 seconds associated with `device-123`.
-- [ ] Response: `201 Created` with a confirmation message.
-
-### User Story 2: The Heartbeat (Reset)
-**As a** remote device,  
-**I want to** send a signal to the server,  
-**So that** my timer is reset and no alert is sent.
-
-**Acceptance Criteria:**
-- [ ] The API accepts a `POST /monitors/{id}/heartbeat` request.
-- [ ] If the ID exists and the timer has NOT expired:
-    - [ ] Restart the countdown from the beginning (e.g., reset to 60 seconds).
-    - [ ] Return `200 OK`.
-- [ ] If the ID does not exist:
-    - [ ] Return `404 Not Found`.
-
-### User Story 3: The Alert (Failure State)
-**As a** support engineer,  
-**I want to** be notified immediately if a device stops sending heartbeats,  
-**So that** I can deploy a repair team.
-
-**Acceptance Criteria:**
-- [ ] If the timer for `device-123` reaches 0 seconds (no heartbeat received):
-    - [ ] The system must internally "fire" an alert.
-    - [ ] **Implementation:** For this project, simply `console.log` a JSON object: `{"ALERT": "Device device-123 is down!", "time": <timestamp>}`. (Or simulate sending an email).
-    - [ ] The monitor status changes to `down`.
+![Layered architecture diagram](docs/architecture.svg)
 
 ---
 
-## 6. Bonus User Story (The "Snooze" Button)
-**As a** maintenance technician,  
-**I want to** pause monitoring while I am repairing a device,  
-**So that** I don't trigger false alarms.
+## System Flow & State Machine
 
-**Acceptance Criteria:**
-- [ ] Create a `POST /monitors/{id}/pause` endpoint.
-- [ ] When called, the timer stops completely. No alerts will fire.
-- [ ] Calling the heartbeat endpoint again automatically "un-pauses" the monitor and restarts the timer.
+Every monitor lives in one of three states: **Active**, **Paused**, or **Down**. The diagram below shows which HTTP endpoints drive each transition, and which transitions happen automatically via the timer.
+
+![System flow and state machine](docs/flowchart.svg)
 
 ---
 
-## 7. The "Developer's Choice" Challenge
-We value engineers who look for "what's missing."
+## Setup Instructions
 
-**Task:** Identify **one** additional feature that makes this system more robust or user-friendly.
-1.  **Implement it.**
-2.  **Document it:** Explain *why* you added it in your README.
+### Prerequisites
+
+- Node.js v18 or higher
+- npm v8 or higher
+
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone <your-repo-url>
+cd pulse-check-api
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the development server
+npm start
+```
+
+The server starts on `http://localhost:4000` by default.
+
+To use a different port:
+
+```bash
+PORT=8080 npm start
+```
+
+### Available Scripts
+
+| Command              | Description                               |
+| -------------------- | ----------------------------------------- |
+| `npm start`          | Run the server with ts-node (development) |
+| `npm run build`      | Compile TypeScript to `/dist`             |
+| `npm run start:prod` | Run the compiled output (production)      |
 
 ---
 
-## 8. Documentation Requirements
-Your final `README.md` must replace these instructions. It must cover:
+## API Documentation
 
-1.  **Architecture Diagram** 
-2.  **Setup Instructions** 
-3.  **API Documentation** 
-4.  **The Developer's Choice:** Explanation of your added feature.
+### Base URL
 
----
-Submit your repo link via the [online](https://forms.office.com/e/rGKtfeZCsH) form.
+```
+http://localhost:4000
+```
 
-## 🛑 Pre-Submission Checklist
-**WARNING:** Before you submit your solution, you **MUST** pass every item on this list.
-If you miss any of these critical steps, your submission will be **automatically rejected** and you will **NOT** be invited to an interview.
+### Endpoints Overview
 
-### 1. 📂 Repository & Code
-- [ ] **Public Access:** Is your GitHub repository set to **Public**? (We cannot review private repos).
-- [ ] **Clean Code:** Did you remove unnecessary files (like `node_modules`, `.env` with real keys, or `.DS_Store`)?
-- [ ] **Run Check:** if we clone your repo and run `npm start` (or equivalent), does the server start immediately without crashing?
-
-### 2. 📄 Documentation (Crucial)
-- [ ] **Architecture Diagram:** Did you include a visual Diagram (Flowchart or Sequence Diagram) in the README?
-- [ ] **README Swap:** Did you **DELETE** the original instructions (the problem brief) from this file and replace it with your own documentation?
-- [ ] **API Docs:** Is there a clear list of Endpoints and Example Requests in the README?
-
-
-### 3. 🧹 Git Hygiene
-- [ ] **Commit History:** Does your repo have multiple commits with meaningful messages? (A single "Initial Commit" is a red flag).
+| Method | Endpoint                  | Description                   |
+| ------ | ------------------------- | ----------------------------- |
+| GET    | `/`                       | Health check                  |
+| POST   | `/monitors`               | Register a new monitor        |
+| POST   | `/monitors/:id/heartbeat` | Reset a monitor's countdown   |
+| POST   | `/monitors/:id/pause`     | Pause a monitor's timer       |
+| GET    | `/monitors/:id`           | Get a single monitor's status |
+| GET    | `/monitors/:id/history`   | Get a monitor's alert history |
+| GET    | `/monitors`               | Get all monitors              |
 
 ---
-**Ready?**
-If you checked all the boxes above, submit your repository link in the application form. Good luck! 🚀
+
+### GET `/`
+
+Health check to confirm the server is running.
+
+**Request**
+
+```http
+GET http://localhost:3000/
+```
+
+**Response `200 OK`**
+
+```json
+{ "message": "You are a dead man, unless you ping!!!" }
+```
+
+---
+
+### POST `/monitors`
+
+Registers a new device monitor and starts its countdown timer. If a monitor with the same ID already exists, it is replaced and its old timer is cancelled.
+
+**Request**
+
+```http
+POST http://localhost:3000/monitors
+Content-Type: application/json
+
+{
+  "id": "device-123",
+  "timeout": 60,
+  "alert_email": "admin@critmon.com"
+}
+```
+
+| Field         | Type   | Required | Description                                  |
+| ------------- | ------ | -------- | -------------------------------------------- |
+| `id`          | string | Yes      | Unique device identifier                     |
+| `timeout`     | number | Yes      | Seconds before alert fires if no heartbeat   |
+| `alert_email` | string | Yes      | Email to notify on alert (logged to console) |
+
+**Response `201 Created`**
+
+```json
+{
+  "message": "Monitor for device-123 created",
+  "monitor": {
+    "id": "device-123",
+    "timeout": 60,
+    "alertEmail": "admin@critmon.com",
+    "status": "active",
+    "createdAt": "2025-05-25T10:00:00.000Z",
+    "lastHeartbeat": "2025-05-25T10:00:00.000Z",
+    "alertHistory": []
+  }
+}
+```
+
+**Response `400 Bad Request`** — if any required field is missing
+
+```json
+{ "error": "id, timeout, and alert_email are required" }
+```
+
+---
+
+### POST `/monitors/:id/heartbeat`
+
+Resets the countdown timer for an existing monitor. If the monitor was paused, this also resumes it. If the monitor was down, this brings it back to active and stamps the `resolvedAt` time on the last alert event.
+
+**Request**
+
+```http
+POST http://localhost:3000/monitors/device-123/heartbeat
+```
+
+No request body needed — the device ID in the URL is sufficient.
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Heartbeat received for device-123",
+  "monitor": {
+    "id": "device-123",
+    "timeout": 60,
+    "alertEmail": "admin@critmon.com",
+    "status": "active",
+    "lastHeartbeat": "2026-05-25T23:47:23.171Z"
+  }
+}
+```
+
+**Response `404 Not Found`** — if the device ID does not exist
+
+```json
+{ "error": "Monitor device-123 not found" }
+```
+
+---
+
+### POST `/monitors/:id/pause`
+
+Freezes a monitor's countdown timer completely. No alert will fire while the monitor is paused. Sending a heartbeat automatically resumes the monitor and restarts the timer from the full timeout value.
+
+**Request**
+
+```http
+POST http://localhost:3000/monitors/device-123/pause
+```
+
+No request body needed.
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Monitor device-123 paused",
+  "monitor": {
+    "id": "device-123",
+    "timeout": 60,
+    "alertEmail": "admin@critmon.com",
+    "status": "paused",
+    "lastHeartbeat": "2026-05-25T23:47:23.171Z"
+  }
+}
+```
+
+**Response `404 Not Found`**
+
+```json
+{ "error": "Monitor device-123 not found" }
+```
+
+---
+
+### GET `/monitors/:id`
+
+Returns the current state of a single monitor.
+
+**Request**
+
+```http
+GET http://localhost:3000/monitors/device-123
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "id": "device-123",
+  "timeout": 60,
+  "alertEmail": "admin@critmon.com",
+  "status": "active",
+  "createdAt": "2025-05-25T10:00:00.000Z",
+  "lastHeartbeat": "2025-05-25T10:01:05.000Z",
+  "alertHistory": []
+}
+```
+
+**Response `404 Not Found`**
+
+```json
+{ "error": "Monitor device-123 not found" }
+```
+
+---
+
+### GET `/monitors/:id/history` _(Developer's Choice)_
+
+Returns the full alert history for a device, including when each outage occurred, when the device recovered, and how long it was offline each time.
+
+**Request**
+
+```http
+GET http://localhost:3000/monitors/device-123/history
+```
+
+**Response `200 OK`** — device that went down and recovered
+
+```json
+{
+  "id": "device-123",
+  "totalAlerts": 2,
+  "history": [
+    {
+      "alertTime": "2025-05-25T10:00:00.000Z",
+      "resolvedAt": "2025-05-25T11:03:22.000Z",
+      "offlineDuration": "3802s",
+      "message": "Device device-123 failed to heartbeat within 60s"
+    },
+    {
+      "alertTime": "2025-05-25T14:00:00.000Z",
+      "resolvedAt": null,
+      "offlineDuration": "ongoing",
+      "message": "Device device-123 failed to heartbeat within 60s"
+    }
+  ]
+}
+```
+
+| Field             | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `alertTime`       | When the alert fired (device went down)                |
+| `resolvedAt`      | When the device came back online. `null` if still down |
+| `offlineDuration` | Time offline in seconds. `"ongoing"` if still down     |
+| `message`         | Description of the failure                             |
+
+**Response `404 Not Found`**
+
+```json
+{ "error": "Monitor device-123 not found" }
+```
+
+---
+
+### GET `/monitors`
+
+Returns all registered monitors and their current states.
+
+**Request**
+
+```http
+GET http://localhost:3000/monitors
+```
+
+**Response `200 OK`**
+
+```json
+[
+  {
+    "id": "device-123",
+    "status": "active",
+    "timeout": 60,
+    "alertEmail": "admin@critmon.com",
+    "createdAt": "2025-05-25T10:00:00.000Z",
+    "lastHeartbeat": "2025-05-25T10:01:05.000Z",
+    "alertHistory": []
+  },
+  {
+    "id": "device-456",
+    "status": "down",
+    "timeout": 30,
+    "alertEmail": "ops@critmon.com",
+    "createdAt": "2025-05-25T09:00:00.000Z",
+    "lastHeartbeat": "2025-05-25T09:30:00.000Z",
+    "alertHistory": [
+      {
+        "time": "2025-05-25T09:30:30.000Z",
+        "resolvedAt": null,
+        "offlineDuration": "ongoing",
+        "message": "Device device-456 failed to heartbeat within 30s"
+      }
+    ]
+  }
+]
+```
+
+---
+
+## Alert Behaviour
+
+When a monitor's timer expires without receiving a heartbeat, the system logs the following to the console:
+
+```json
+{
+  "ALERT": "Device device-123 is down!",
+  "alertEmail": "admin@critmon.com",
+  "time": "2025-05-25T10:01:00.000Z"
+}
+```
+
+In a production system this would trigger a webhook, send an email via a service like SendGrid, Resend or push a notification to an on-call platform like PagerDuty.
+
+---
+
+## Developer's Choice — Alert History with Offline Duration
+
+### What I added
+
+A `GET /monitors/:id/history` endpoint that returns a full log of every time a device went down, when it recovered, and exactly how long it was offline for each incident.
+
+### Why I added it
+
+The core spec fires an alert when a device goes silent — but says nothing about what happens after. Once a device recovers and its status flips back to `active`, there is no trace of the outage.
+
+In a real infrastructure monitoring context, this creates a blind spot. A support engineer responding to an incident needs to know:
+
+- Has this device gone down before?
+- How long was the last outage?
+- Is this a recurring pattern or a one-off?
+
+Without history, every incident looks like the first one, and post-incident reports are impossible to write accurately.
+
+The history endpoint solves this by recording an `AlertEvent` every time the alert fires, and stamping a `resolvedAt` timestamp when the device sends its next heartbeat from a `down` state. The `offlineDuration` is computed server-side so clients do not need to calculate it themselves.
+
+---
+
+## Design Decisions
+
+**In-memory storage** — monitors are stored in a JavaScript `Map` rather than a database. Data does not persist across server restarts. The store layer is fully isolated, so swapping in Redis or PostgreSQL will be quite easy and straightforward.
+
+**Layered architecture** — types, store, service, controller, and routes each have one responsibility and only talk to the layer below. This makes every piece independently testable and replaceable without touching the rest of the system.
+
+**`timerHandle` never exposed to clients** — the `SafeMonitor` type uses TypeScript's `Omit` utility to strip `timerHandle` from any object the API returns. It is a Node.js internal implementation detail with no meaning outside the server process.

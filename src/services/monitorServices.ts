@@ -23,7 +23,7 @@ function fireAlert(id: string): void {
   if (!monitor) return;
 
   const event: AlertEvent = {
-    time: new Date().toISOString(),
+    alertTime: new Date().toISOString(),
     message: `Monitor ${id} failed to heartbeat within ${monitor.timeout}s`,
     resolvedAt: null,
     offlineDuration: "ongoing",
@@ -82,8 +82,8 @@ export function heartbeatOfMonitor(id: string): MonitorSummary | null {
       lastAlert.resolvedAt = new Date().toISOString();
 
       const downTimeInSeconds = Math.floor(
-        (new Date(lastAlert.time).getTime() -
-          new Date(lastAlert.resolvedAt).getTime()) /
+        (new Date(lastAlert.resolvedAt).getTime() -
+          new Date(lastAlert.alertTime).getTime()) /
           1000,
       );
 

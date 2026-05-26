@@ -1,0 +1,71 @@
+<svg width="680" height="540" viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>System flow and state machine</title>
+  <desc>Combined state machine and system flow showing the three monitor states — Active, Paused, and Down — and the HTTP endpoint triggers that drive each transition.</desc>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-dash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Device / Client start -->
+  <circle cx="340" cy="36" r="14" fill="#1f2937"/>
+  <text x="340" y="16" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#6b7280">Device / Client</text>
+
+  <!-- Arrow: Start → ACTIVE -->
+  <line x1="340" y1="50" x2="340" y2="75" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="344" y="52" width="118" height="16" fill="white"/>
+  <text x="346" y="64" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#374151">POST /monitors</text>
+
+  <!-- ACTIVE state box -->
+  <rect x="215" y="79" width="250" height="70" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <text x="340" y="106" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="15" font-weight="700" fill="#065f46">Active</text>
+  <text x="340" y="126" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#059669">Timer counting down</text>
+
+  <!-- Heartbeat self-loop on ACTIVE (left side) -->
+  <path d="M 215,97 C 108,75 108,149 215,127" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="18" y="98" width="88" height="32" fill="white"/>
+  <text x="20" y="111" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#374151">heartbeat</text>
+  <text x="20" y="125" font-family="system-ui,-apple-system,sans-serif" font-size="10" fill="#6b7280">(resets timer)</text>
+
+  <!-- ACTIVE → PAUSED (L-path: left then down) -->
+  <path d="M 215,102 L 128,102 L 128,259" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="131" y="170" width="115" height="16" fill="white"/>
+  <text x="133" y="182" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#374151">POST /:id/pause</text>
+
+  <!-- PAUSED state box -->
+  <rect x="55" y="263" width="190" height="70" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="150" y="290" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="15" font-weight="700" fill="#92400e">Paused</text>
+  <text x="150" y="310" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#f59e0b">Timer frozen</text>
+
+  <!-- PAUSED → ACTIVE (L-path: right then up) -->
+  <path d="M 245,294 L 282,294 L 282,149" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="285" y="208" width="72" height="16" fill="white"/>
+  <text x="287" y="220" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#374151">heartbeat</text>
+
+  <!-- ACTIVE → DOWN dashed line (timer expires, automatic) -->
+  <line x1="340" y1="149" x2="340" y2="419" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="7,4" marker-end="url(#arr-dash)"/>
+  <rect x="344" y="274" width="100" height="32" fill="white"/>
+  <text x="346" y="287" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#9ca3af">timer expires</text>
+  <text x="346" y="302" font-family="system-ui,-apple-system,sans-serif" font-size="10" fill="#9ca3af">(no heartbeat)</text>
+
+  <!-- DOWN state box -->
+  <rect x="215" y="423" width="250" height="70" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="340" y="450" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="15" font-weight="700" fill="#991b1b">Down</text>
+  <text x="340" y="470" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#ef4444">Alert logged to console</text>
+
+  <!-- DOWN → ACTIVE recovery (right side: right, up, left) -->
+  <path d="M 465,458 L 568,458 L 568,114 L 465,114" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="571" y="270" width="82" height="32" fill="white"/>
+  <text x="573" y="283" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#374151">heartbeat</text>
+  <text x="573" y="298" font-family="system-ui,-apple-system,sans-serif" font-size="10" fill="#6b7280">(recovery)</text>
+
+  <!-- Legend -->
+  <line x1="192" y1="518" x2="228" y2="518" stroke="#4b5563" stroke-width="1.5"/>
+  <text x="234" y="522" font-family="system-ui,-apple-system,sans-serif" font-size="10" fill="#6b7280">HTTP request</text>
+  <line x1="330" y1="518" x2="366" y2="518" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="372" y="522" font-family="system-ui,-apple-system,sans-serif" font-size="10" fill="#6b7280">automatic (timer-based)</text>
+</svg>

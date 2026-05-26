@@ -1,5 +1,5 @@
 import express from "express";
-import Routes from "./routes/monitorsRoutes";
+import Routes from "./routes/monitorRoutes";
 
 const app = express();
 const PORT = 4000;

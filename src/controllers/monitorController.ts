@@ -20,6 +20,13 @@ export function create(req: Request, res: Response): void {
     return;
   }
 
+  const mon = findById(id);
+
+  if (mon) {
+    res.status(409).json({ error: `Monitor ${id} already exists` });
+    return;
+  }
+
   const monitor = createMonitor({ id, timeout, alertEmail });
   res.status(201).json({ message: `Monitor for ${id} created`, monitor });
 }
@@ -102,18 +109,6 @@ export function getHistory(req: Request, res: Response): void {
     res.status(404).json({ error: `Monitor ${id} not found` });
     return;
   }
-
-  //   const formattedHistory = history.map((alert) => {
-  //     if (!alert.resolvedAt) {
-  //       return { ...alert };
-  //     }
-
-  //     const downAt = new Date(alert.time).getTime();
-  //     const resolvedAt = new Date(alert.resolvedAt).getTime();
-  //     const downTimeInSeconds = Math.floor((resolvedAt - downAt) / 1000);
-  //     alert.offlineDuration = `${downTimeInSeconds}s`;
-  //     return alert;
-  //   });
 
   res.status(200).json({
     id,
